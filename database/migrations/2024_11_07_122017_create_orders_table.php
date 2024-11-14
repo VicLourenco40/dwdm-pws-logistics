@@ -9,9 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
-            $table->id();
+            $table->uuid()->primary();
             $table->text('description');
-            $table->foreignId('recipient_id');
+            $table->foreignUuid('recipient_id')->unique();
+            $table->string('tracking_code');
             $table->timestamps();
         });
     }
