@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use App\Models\Recipient;
 
 class Order extends Model
 {
@@ -14,4 +15,8 @@ class Order extends Model
         'recipient_id',
         'tracking_code'
     ];
+
+    public function recipient() {
+        return $this->belongsTo(Recipient::class);
+    }
 }

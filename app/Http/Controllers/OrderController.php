@@ -7,11 +7,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\Recipient;
 use App\Models\Order;
+use App\Models\Status;
+use App\Models\OrderStatus;
 
 class OrderController extends Controller
 {
     public function index() {
-        $orders = Order::all();
+        $orders = Order::with('recipient')->simplePaginate(10);
 
         return response()->json([
             'orders' => $orders
@@ -42,6 +44,14 @@ class OrderController extends Controller
             $order->recipient_id = $recipient->id;
             $order->tracking_code = $tracking_code;
             $order->save();
+
+            $pendingStatus = Status::where('slug', 'pending')->first();
+
+            $orderStatus = new OrderStatus;
+            $orderStatus->order_id = $order->id;
+            $orderStatus->status_id = $pendingStatus->id;
+            $orderStatus->changed_by = auth()->user()->id;
+            $orderStatus->save();
 
             DB::commit();
 
