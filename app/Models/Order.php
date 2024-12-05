@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use App\Models\Recipient;
+use App\Models\OrderStatus;
 
 class Order extends Model
 {
@@ -18,5 +19,9 @@ class Order extends Model
 
     public function recipient() {
         return $this->belongsTo(Recipient::class);
+    }
+
+    public function currentStatus() {
+        return $this->hasOne(OrderStatus::class)->with('status')->latest();
     }
 }

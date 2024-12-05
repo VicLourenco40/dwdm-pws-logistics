@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Status;
 
 class OrderStatus extends Model
 {
@@ -13,4 +14,8 @@ class OrderStatus extends Model
         'status_id',
         'changed_by'
     ];
+
+    public function status() {
+        return $this->belongsTo(Status::class);
+    }
 }

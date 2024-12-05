@@ -9,11 +9,12 @@ use App\Models\Recipient;
 use App\Models\Order;
 use App\Models\Status;
 use App\Models\OrderStatus;
+use App\Http\Requests\UpdateStatusRequest;
 
 class OrderController extends Controller
 {
     public function index() {
-        $orders = Order::with('recipient')->simplePaginate(10);
+        $orders = Order::with(['recipient', 'currentStatus'])->simplePaginate(10);
 
         return response()->json([
             'orders' => $orders
@@ -79,5 +80,55 @@ class OrderController extends Controller
         $tracking_number = $letters . $numbers;
 
         return $tracking_number;
+    }
+
+    public function updateStatus(UpdateStatusRequest $request) {
+        $tracking_number = $request->code;
+        $new_status_id = $request->new_status_id;
+
+        $order = Order::with('currentStatus')->where('code', $tracking_number)->first();
+
+        if (!$order) {
+            return response()->json([
+                'error' => 'Order does not exist'
+            ], 404);
+        }
+
+        $new_status = Status::where('id', $new_status_id)->first();
+
+        if (!$new_status) {
+            return response()->json([
+                'error' => 'Invalid status'
+            ]);
+        }
+
+        $allowedTransitions = [
+            'pending' => ['available-for-distribution', 'cancelled'],
+            'available-for-distribution' => ['in-transit', 'cancelled'],
+            'in-transit' => ['delivered', 'cancelled'],
+            'delivered' => ['returned'],
+            'returned' => [],
+            'cancelled' => []
+        ];
+
+        $current_status = $order->currentStatus->status->slug;
+
+        if (!in_array($new_status->slug, $allowedTransitions[$current_status])) {
+            return response()->json([
+                'message' => 'Can\'t update to requested status',
+                'current_status' => $current_status,
+                'new_status' => $new_status->slug
+            ]);
+        }
+
+        $order_status = new OrderStatus();
+        $order_status->order_id = $order->id;
+        $order_status->status_id = $new_status_id;
+        $order_status->changed_by = auth()->user()->id;
+        $order_status->save();
+
+        return response()->json([
+            'new_order_status' => $order_status
+        ]);
     }
 }
