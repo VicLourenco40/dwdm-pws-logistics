@@ -21,6 +21,22 @@ class OrderController extends Controller
         ]);
     }
 
+    public function show(Request $request) {
+        $tracking_code = $request->trackingCode;
+
+        $order = Order::where('tracking_code', $tracking_code)->first();
+
+        if (!$order) {
+            return response()->json([
+                'error' => 'Order not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'order' => $order
+        ]);
+    }
+
     public function store(Request $request) {
         if (!$this->checkIfWithinTimeRange()) {
             return response()->json([

@@ -8,6 +8,7 @@ use App\Http\Controllers\StatusController;
 use App\Http\Middleware\JWTMiddleware;
 
 Route::get('/orders', [OrderController::class, 'index']);
+Route::get('/orders/{trackingCode}', [OrderController::class, 'show']);
 Route::post('/sign-up', [UserController::class, 'register']);
 Route::get('/status', [StatusController::class, 'index']);
 
